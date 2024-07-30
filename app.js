@@ -18,7 +18,6 @@ detailGuide.addEventListener('click', function () {
   }
 });
 
-// console.log(data);
 const currentData = data.records.filter(
   (item) =>
     item.데이터기준일자.split('-')[0] >= '2023' &&
@@ -26,9 +25,40 @@ const currentData = data.records.filter(
     item.위도 !== ''
 );
 
-// console.log(currentData);
+// 검색 버튼 기능
+const searchBtn = document.querySelector('.search button');
+const searchInput = document.querySelector('.search input');
+const mapElmt = document.querySelector('#map');
+const loading = document.querySelector('.loading');
 
-// 네이버 맵 적용
+// 검색 버튼 클릭 시 실행 함수
+searchBtn.addEventListener('click', function () {
+  const searchValue = searchInput.Value; // 입력값 저장
+
+  if (searchInput.value === '') {
+    alert('검색어를 입력해주세요.');
+    searchInput.focus(); // 커서 입력창에 포커스
+    return;
+  } // 검색어 없이 클릭할 경우 알림
+
+  const searchResult = currentData.filter(
+    (item) =>
+      item.도서관명.includes(searchValue) || item.시군구명.includes(searchValue)
+  );
+
+  if (searchResult.length === 0) {
+    alert('검색 결과가 없습니다.');
+    searchInput.value = '';
+    searchInput.focus();
+    return;
+  } else {
+    mapElmt.innerHTML = '';
+    startLenderMap(searchResult[0].위도, searchResult[0].경도);
+    searchInput.value = '';
+  }
+});
+
+// 네이버 맵 적용: 현재위치 검색
 navigator.geolocation.getCurrentPosition((position) => {
   // console.log(position)
   const lat = position.coords.latitude;
@@ -78,6 +108,8 @@ function startLenderMap(lat, lng) {
           <h4 style="padding:0.25rem 0.5rem; font-size:12px; font-weight:500; color:#555">${item.도서관명}</h4>
         `,
       });
+
+      loading.style.display = 'none';
 
       naver.maps.Event.addListener(marker, 'click', function () {
         if (infoWindow.getMap()) {
